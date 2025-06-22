@@ -12,12 +12,14 @@ class _TaskListScreenState extends State<TaskListScreen> {
   String _searchQuery = '';
 
   List<Task> get filteredTasks {
-    if (_searchQuery.isEmpty) {
-      return globalTasks;
-    }
-    return globalTasks.where((task) =>
-      task.description.toLowerCase().contains(_searchQuery.toLowerCase())
-    ).toList();
+    if (_searchQuery.isEmpty) return globalTasks;
+    return globalTasks
+        .where(
+          (task) => task.description.toLowerCase().contains(
+            _searchQuery.toLowerCase(),
+          ),
+        )
+        .toList();
   }
 
   void _deleteTask(int originalIndex) {
@@ -25,7 +27,9 @@ class _TaskListScreenState extends State<TaskListScreen> {
       context: context,
       builder: (modalContext) => CupertinoAlertDialog(
         title: const Text("Eliminar Tarea"),
-        content: const Text("¿Estás seguro de que quieres eliminar esta tarea?"),
+        content: const Text(
+          "¿Estás seguro de que quieres eliminar esta tarea?",
+        ),
         actions: [
           CupertinoDialogAction(
             child: const Text("Cancelar"),
@@ -49,11 +53,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
   }
 
   String _formatDate(DateTime date) {
-    List<String> months = [
-      'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
-      'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'
-    ];
-    return '${date.day} ${months[date.month - 1]} ${date.year}';
+    return '${date.day}/${date.month}/${date.year}';
   }
 
   Color _getPriorityColor(DateTime taskDate) {
@@ -63,9 +63,10 @@ class _TaskListScreenState extends State<TaskListScreen> {
     final difference = taskDay.difference(today).inDays;
 
     if (difference < 0) return const Color(0xFFE53E3E); // Pasada - Rojo
-    if (difference == 0 || difference == 1) return const Color(0xFFED8936); // Hoy/Mañana - Naranja
-    if (difference <= 7) return const Color(0xFFECC94B); // Próxima - Amarillo
-    return const Color(0xFF48BB78); // Normal - Verde
+    if (difference == 0) return const Color(0xFFED8936); // Hoy - Naranja
+    if (difference == 1) return const Color(0xFFECC94B); // Mañana - Amarillo
+    if (difference <= 7) return const Color(0xFF4299E1); // Esta semana - Azul
+    return const Color(0xFF48BB78); // Programada - Verde
   }
 
   String _getPriorityText(DateTime taskDate) {
@@ -74,17 +75,21 @@ class _TaskListScreenState extends State<TaskListScreen> {
     final today = DateTime(now.year, now.month, now.day);
     final difference = taskDay.difference(today).inDays;
 
-    if (difference < 0) return 'Pasada';
+    if (difference < 0) return 'Vencida';
     if (difference == 0) return 'Hoy';
     if (difference == 1) return 'Mañana';
-    if (difference <= 7) return 'Esta semana';
+    if (difference <= 7) return 'Próximos días';
     return 'Programada';
   }
 
   int _getCompletedTasksCount() {
     final today = DateTime.now();
     return globalTasks.where((task) {
-      final taskDate = DateTime(task.createdAt.year, task.createdAt.month, task.createdAt.day);
+      final taskDate = DateTime(
+        task.createdAt.year,
+        task.createdAt.month,
+        task.createdAt.day,
+      );
       final nowDate = DateTime(today.year, today.month, today.day);
       return taskDate.isBefore(nowDate);
     }).length;
@@ -93,7 +98,11 @@ class _TaskListScreenState extends State<TaskListScreen> {
   int _getUpcomingTasksCount() {
     final today = DateTime.now();
     return globalTasks.where((task) {
-      final taskDate = DateTime(task.createdAt.year, task.createdAt.month, task.createdAt.day);
+      final taskDate = DateTime(
+        task.createdAt.year,
+        task.createdAt.month,
+        task.createdAt.day,
+      );
       final nowDate = DateTime(today.year, today.month, today.day);
       return taskDate.isAfter(nowDate);
     }).length;
@@ -102,172 +111,66 @@ class _TaskListScreenState extends State<TaskListScreen> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      navigationBar: const CupertinoNavigationBar(
-        backgroundColor: Color(0xFFF8F9FA),
-        middle: Text(
+      backgroundColor: const Color(0xFFF5F7FA),
+      navigationBar: CupertinoNavigationBar(
+        backgroundColor: CupertinoColors.white,
+        middle: const Text(
           'Mis Tareas',
           style: TextStyle(
-            color: Color(0xFF2D3748),
+            fontSize: 18,
             fontWeight: FontWeight.w600,
+            color: Color(0xFF2D3748),
           ),
+        ),
+        border: const Border(
+          bottom: BorderSide(color: Color(0xFFEDF2F7), width: 0.5),
         ),
       ),
       child: SafeArea(
         child: Column(
           children: [
-            // Barra de búsqueda y estadísticas
-            Container(
+            // Barra de búsqueda
+            Padding(
               padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  // Estadísticas rápidas
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Column(
-                            children: [
-                              const Icon(
-                                CupertinoIcons.list_bullet,
-                                color: CupertinoColors.white,
-                                size: 24,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${globalTasks.length}',
-                                style: const TextStyle(
-                                  color: CupertinoColors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const Text(
-                                'Total',
-                                style: TextStyle(
-                                  color: CupertinoColors.white,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF48BB78), Color(0xFF38A169)],
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Column(
-                            children: [
-                              const Icon(
-                                CupertinoIcons.checkmark_circle_fill,
-                                color: CupertinoColors.white,
-                                size: 24,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${_getCompletedTasksCount()}',
-                                style: const TextStyle(
-                                  color: CupertinoColors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const Text(
-                                'Pasadas',
-                                style: TextStyle(
-                                  color: CupertinoColors.white,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFFED8936), Color(0xFFDD6B20)],
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Column(
-                            children: [
-                              const Icon(
-                                CupertinoIcons.clock_fill,
-                                color: CupertinoColors.white,
-                                size: 24,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${_getUpcomingTasksCount()}',
-                                style: const TextStyle(
-                                  color: CupertinoColors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const Text(
-                                'Futuras',
-                                style: TextStyle(
-                                  color: CupertinoColors.white,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
+              child: CupertinoSearchTextField(
+                placeholder: 'Buscar tareas...',
+                onChanged: (value) => setState(() => _searchQuery = value),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: CupertinoColors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+                ),
+              ),
+            ),
 
-                  // Barra de búsqueda
-                  Container(
-                    decoration: BoxDecoration(
-                      color: CupertinoColors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: CupertinoColors.systemGrey.withOpacity(0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 5),
-                        ),
-                      ],
-                    ),
-                    child: CupertinoTextField(
-                      placeholder: 'Buscar tareas...',
-                      padding: const EdgeInsets.all(16),
-                      decoration: const BoxDecoration(),
-                      prefix: const Padding(
-                        padding: EdgeInsets.only(left: 16),
-                        child: Icon(
-                          CupertinoIcons.search,
-                          color: Color(0xFF667EEA),
-                        ),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          _searchQuery = value;
-                        });
-                      },
-                    ),
+            // Estadísticas
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  _buildStatCard(
+                    icon: CupertinoIcons.list_bullet,
+                    value: globalTasks.length.toString(),
+                    label: 'Total',
+                    color: const Color(0xFF5B67CA),
+                  ),
+                  const SizedBox(width: 12),
+                  _buildStatCard(
+                    icon: CupertinoIcons.checkmark_circle_fill,
+                    value: _getCompletedTasksCount().toString(),
+                    label: 'Completadas',
+                    color: const Color(0xFF38A169),
+                  ),
+                  const SizedBox(width: 12),
+                  _buildStatCard(
+                    icon: CupertinoIcons.clock_fill,
+                    value: _getUpcomingTasksCount().toString(),
+                    label: 'Pendientes',
+                    color: const Color(0xFFED8936),
                   ),
                 ],
               ),
@@ -275,159 +178,226 @@ class _TaskListScreenState extends State<TaskListScreen> {
 
             // Lista de tareas
             Expanded(
-              child: filteredTasks.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            width: 100,
-                            height: 100,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF7FAFC),
-                              borderRadius: BorderRadius.circular(50),
-                            ),
-                            child: const Icon(
-                              CupertinoIcons.doc_text,
-                              size: 50,
-                              color: Color(0xFF718096),
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          Text(
-                            globalTasks.isEmpty ? 'No hay tareas registradas' : 'No se encontraron tareas',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              color: Color(0xFF718096),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            globalTasks.isEmpty 
-                                ? 'Agrega tu primera tarea en la pestaña "Nueva Tarea"'
-                                : 'Intenta con otra búsqueda',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Color(0xFF718096),
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      itemCount: filteredTasks.length,
-                      itemBuilder: (context, index) {
-                        final task = filteredTasks[index];
-                        final originalIndex = globalTasks.indexOf(task);
-                        final priorityColor = _getPriorityColor(task.createdAt);
-                        final priorityText = _getPriorityText(task.createdAt);
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
+                child: filteredTasks.isEmpty
+                    ? _buildEmptyState()
+                    : ListView.separated(
+                        itemCount: filteredTasks.length,
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final task = filteredTasks[index];
+                          final originalIndex = globalTasks.indexOf(task);
+                          final priorityColor = _getPriorityColor(
+                            task.createdAt,
+                          );
+                          final priorityText = _getPriorityText(task.createdAt);
 
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 16),
-                          decoration: BoxDecoration(
-                            color: CupertinoColors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: CupertinoColors.systemGrey.withOpacity(0.1),
-                                blurRadius: 10,
-                                offset: const Offset(0, 5),
-                              ),
-                            ],
-                          ),
-                          child: CupertinoListTile(
-                            padding: const EdgeInsets.all(20),
-                            leading: Container(
-                              width: 50,
-                              height: 50,
-                              decoration: BoxDecoration(
-                                color: priorityColor.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(25),
-                                border: Border.all(
-                                  color: priorityColor,
-                                  width: 2,
-                                ),
-                              ),
-                              child: Icon(
-                                CupertinoIcons.doc_text_fill,
-                                color: priorityColor,
-                                size: 24,
-                              ),
-                            ),
-                            title: Text(
-                              task.description,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF2D3748),
-                              ),
-                            ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const SizedBox(height: 8),
-                                Row(
-                                  children: [
-                                    const Icon(
-                                      CupertinoIcons.calendar,
-                                      size: 14,
-                                      color: Color(0xFF718096),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      _formatDate(task.createdAt),
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        color: Color(0xFF718096),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: priorityColor.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    priorityText,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: priorityColor,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            trailing: CupertinoButton(
-                              padding: EdgeInsets.zero,
-                              child: Container(
-                                width: 32,
-                                height: 32,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFFED7D7),
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: const Icon(
-                                  CupertinoIcons.trash,
-                                  size: 16,
-                                  color: Color(0xFFE53E3E),
-                                ),
-                              ),
-                              onPressed: () => _deleteTask(originalIndex),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+                          return _buildTaskItem(
+                            task: task,
+                            priorityColor: priorityColor,
+                            priorityText: priorityText,
+                            onDelete: () => _deleteTask(originalIndex),
+                          );
+                        },
+                      ),
+              ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildStatCard({
+    required IconData icon,
+    required String value,
+    required String label,
+    required Color color,
+  }) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: CupertinoColors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: CupertinoColors.systemGrey.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Icon(icon, size: 20, color: color),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 12, color: Color(0xFF718096)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTaskItem({
+    required Task task,
+    required Color priorityColor,
+    required String priorityText,
+    required VoidCallback onDelete,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: CupertinoColors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: CupertinoColors.systemGrey.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: CupertinoListTile(
+        padding: const EdgeInsets.all(16),
+        leading: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: priorityColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: priorityColor, width: 1.5),
+          ),
+          child: Icon(
+            CupertinoIcons.doc_text_fill,
+            size: 18,
+            color: priorityColor,
+          ),
+        ),
+        title: Text(
+          task.description,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF2D3748),
+          ),
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    CupertinoIcons.calendar,
+                    size: 14,
+                    color: CupertinoColors.systemGrey,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    _formatDate(task.createdAt),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF718096),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: priorityColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  priorityText,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: priorityColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        trailing: CupertinoButton(
+          padding: EdgeInsets.zero,
+          minSize: 0,
+          child: const Icon(
+            CupertinoIcons.trash,
+            size: 20,
+            color: Color(0xFFE53E3E),
+          ),
+          onPressed: onDelete,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(50),
+              border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+            ),
+            child: const Icon(
+              CupertinoIcons.doc_text,
+              size: 40,
+              color: Color(0xFFA0AEC0),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            globalTasks.isEmpty
+                ? 'No hay tareas'
+                : 'No se encontraron resultados',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF2D3748),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Text(
+              globalTasks.isEmpty
+                  ? 'Presiona el botón "+" para agregar tu primera tarea'
+                  : 'Intenta con otro término de búsqueda',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 14, color: Color(0xFF718096)),
+            ),
+          ),
+        ],
       ),
     );
   }
