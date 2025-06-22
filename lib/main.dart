@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'iOS Task Manager',
       theme: CupertinoThemeData(
-        primaryColor: CupertinoColors.activeBlue,
+        primaryColor: const Color.fromARGB(255, 41, 45, 48),
         scaffoldBackgroundColor: CupertinoColors.systemGroupedBackground,
         barBackgroundColor: CupertinoColors.systemGrey6,
       ),
